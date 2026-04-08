@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NOVA — Premium E-Commerce</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, createContext, useContext, useRef } = React;
+
+const AppContext = createContext(null);
+
+const CATEGORIES = ['All', 'Electronics', 'Fashion', 'Home & Living', 'Sports', 'Beauty', 'Books'];
+
+const MOCK_PRODUCTS = [
+  { id: 1, name: 'Wireless Noise-Cancelling Headphones', category: 'Electronics', price: 8999, oldPrice: 12999, rating: 4.8, reviews: 2341, stock: 50, isNew: false, discount: 31, description: 'Experience studio-quality sound with advanced active noise cancellation. 30-hour battery life, premium materials, and exceptional comfort for all-day listening.' },
+  { id: 2, name: 'Leather Weekend Bag', category: 'Fashion', price: 5499, oldPrice: null, rating: 4.6, reviews: 876, stock: 23, isNew: true, discount: 0, description: 'Full-grain leather weekend bag, handcrafted with brass hardware. Fits everything you need for a stylish weekend getaway.' },
+  { id: 3, name: 'Minimalist Smart Watch', category: 'Electronics', price: 15999, oldPrice: 19999, rating: 4.9, reviews: 5412, stock: 15, isNew: false, discount: 20, description: 'Track your health, stay connected, and look stunning. Features AMOLED display, GPS, heart rate monitoring, and 7-day battery life.' },
+  { id: 4, name: 'Ergonomic Office Chair', category: 'Home & Living', price: 22499, oldPrice: 29999, rating: 4.7, reviews: 1203, stock: 8, isNew: false, discount: 25, description: 'Designed for long work sessions with lumbar support, adjustable armrests, and breathable mesh back.' },
+  { id: 5, name: 'Premium Yoga Mat', category: 'Sports', price: 2999, oldPrice: null, rating: 4.5, reviews: 3287, stock: 100, isNew: false, discount: 0, description: 'Extra-thick non-slip yoga mat made from natural rubber. Perfect for yoga, pilates, and floor exercises.' },
+  { id: 6, name: 'Vitamin C Serum', category: 'Beauty', price: 1499, oldPrice: 2199, rating: 4.7, reviews: 9876, stock: 200, isNew: false, discount: 32, description: 'Brightening serum with 20% Vitamin C, Hyaluronic Acid, and Vitamin E. Reduces dark spots and boosts radiance.' },
+  { id: 7, name: 'The Art of Design — Book Set', category: 'Books', price: 3499, oldPrice: null, rating: 4.9, reviews: 654, stock: 30, isNew: true, discount: 0, description: 'A curated collection of 3 hardcover books covering typography, color theory, and spatial design principles.' },
+  { id: 8, name: 'Bamboo Desk Organizer', category: 'Home & Living', price: 1299, oldPrice: 1799, rating: 4.4, reviews: 2109, stock: 75, isNew: false, discount: 28, description: 'Eco-friendly bamboo desk organizer with 6 compartments to keep your workspace clean and productive.' },
+  { id: 9, name: 'Trail Running Shoes', category: 'Sports', price: 7499, oldPrice: 9999, rating: 4.6, reviews: 1876, stock: 40, isNew: false, discount: 25, description: 'Lightweight trail runners with superior grip, waterproof upper, and responsive cushioning for off-road adventures.' },
+  { id: 10, name: 'Wireless Charging Pad', category: 'Electronics', price: 1999, oldPrice: 2799, rating: 4.3, reviews: 4532, stock: 120, isNew: false, discount: 29, description: 'Fast wireless charging pad compatible with all Qi-enabled devices. Charges up to 15W with intelligent temperature control.' },
+  { id: 11, name: 'Linen Shirt — Premium', category: 'Fashion', price: 2499, oldPrice: null, rating: 4.5, reviews: 987, stock: 60, isNew: true, discount: 0, description: 'Breathable linen shirt in classic cut. Perfect for summer occasions, available in 8 colors.' },
+  { id: 12, name: 'Retinol Night Cream', category: 'Beauty', price: 2299, oldPrice: 3199, rating: 4.8, reviews: 5643, stock: 85, isNew: false, discount: 28, description: 'Advanced anti-aging night cream with 1% retinol, peptides, and squalane to reduce wrinkles overnight.' },
+];
+
+const MOCK_ORDERS = [
+  { id: 'NOV-10023', date: '2024-12-18', total: 10998, status: 'delivered', items: [{ name: 'Wireless Headphones', qty: 1, price: 8999 }, { name: 'Charging Pad', qty: 1, price: 1999 }], tracking: 4 },
+  { id: 'NOV-10019', date: '2024-12-10', total: 22499, status: 'shipped', items: [{ name: 'Ergonomic Chair', qty: 1, price: 22499 }], tracking: 3 },
+  { id: 'NOV-10015', date: '2024-12-02', total: 5996, status: 'processing', items: [{ name: 'Vitamin C Serum', qty: 2, price: 1499 }, { name: 'Retinol Night Cream', qty: 1, price: 2299 }], tracking: 2 },
+  { id: 'NOV-10010', date: '2024-11-22', total: 3499, status: 'delivered', items: [{ name: 'Design Book Set', qty: 1, price: 3499 }], tracking: 4 },
+];
+
+const CAT_COLORS = {
+  'Electronics': '#2d3a4a',
+  'Fashion': '#4a2d3a',
+  'Home & Living': '#3a4a2d',
+  'Sports': '#2d3a4a',
+  'Beauty': '#4a2d3e',
+  'Books': '#3e3a2d',
+};
+
+const Icon = {
+  Cart: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>,
+  Heart: ({ filled }) => <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
+  User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  Search: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  Plus: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  Minus: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  Trash: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>,
+  ArrowLeft: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>,
+  Check: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  Star: () => <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  Package: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
+  Settings: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a1 1 0 00-1.41 0l-.7.7A7 7 0 1018.36 18l.7-.7a1 1 0 000-1.41l-1.42-1.42a1 1 0 00-1.41 0 5 5 0 11-7.07-7.07 1 1 0 000-1.41z"/></svg>,
+  LogOut: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+  Truck: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
+  Shield: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  Tag: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+  BarChart: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>,
+  Edit: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  X: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  Eye: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  EyeOff: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+  Home: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  Grid: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>,
+};
+
+const fmt = (n) => '₹' + n.toLocaleString('en-IN');
+
+const Stars = ({ rating }) => (
+  <div className="stars">
+    {[1,2,3,4,5].map(i => (
+      <span key={i} style={{ color: i <= Math.round(rating) ? '#c8922a' : '#d4cfc8' }}>★</span>
+    ))}
+  </div>
+);
+
+const ProductSVG = ({ product, size = 80 }) => {
+  const color = CAT_COLORS[product.category] || '#2d3a4a';
+  return (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none">
+      <rect width="80" height="80" rx="8" fill={color + '22'}/>
+      {product.category === 'Electronics' && <>
+        <rect x="16" y="24" width="48" height="32" rx="4" stroke={color} strokeWidth="2" fill={color+'33'}/>
+        <rect x="28" y="56" width="24" height="4" rx="2" fill={color} opacity="0.5"/>
+        <circle cx="40" cy="40" r="8" stroke={color} strokeWidth="1.5" fill={color+'22'}/>
+      </>}
+      {product.category === 'Fashion' && <>
+        <path d="M28 20l-8 12h8v28h24V32h8L52 20c0 0-4 6-12 6s-12-6-12-6z" stroke={color} strokeWidth="1.5" fill={color+'33'} strokeLinejoin="round"/>
+      </>}
+      {product.category === 'Home & Living' && <>
+        <rect x="18" y="32" width="44" height="28" rx="3" stroke={color} strokeWidth="1.5" fill={color+'33'}/>
+        <path d="M18 32l22-16 22 16" stroke={color} strokeWidth="1.5" strokeLinejoin="round"/>
+        <rect x="30" y="44" width="20" height="16" rx="2" stroke={color} strokeWidth="1.5" fill={color+'44'}/>
+      </>}
+      {product.category === 'Sports' && <>
+        <circle cx="40" cy="40" r="20" stroke={color} strokeWidth="1.5" fill={color+'22'}/>
+        <path d="M22 32c4 4 12 4 18 0s14-4 18 0" stroke={color} strokeWidth="1.5" fill="none"/>
+        <path d="M22 48c4-4 12-4 18 0s14 4 18 0" stroke={color} strokeWidth="1.5" fill="none"/>
+      </>}
+      {product.category === 'Beauty' && <>
+        <ellipse cx="40" cy="42" rx="14" ry="18" stroke={color} strokeWidth="1.5" fill={color+'33'}/>
+        <rect x="36" y="20" width="8" height="10" rx="2" stroke={color} strokeWidth="1.5" fill={color+'44'}/>
+        <path d="M32 58c0 3 4 6 8 6s8-3 8-6" stroke={color} strokeWidth="1.5" fill="none"/>
+      </>}
+      {product.category === 'Books' && <>
+        <rect x="18" y="18" width="34" height="44" rx="2" stroke={color} strokeWidth="1.5" fill={color+'33'}/>
+        <rect x="22" y="22" width="26" height="36" rx="1" stroke={color} strokeWidth="1" fill={color+'22'}/>
+        <line x1="28" y1="30" x2="44" y2="30" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="28" y1="36" x2="44" y2="36" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="28" y1="42" x2="38" y2="42" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+        <rect x="46" y="20" width="8" height="42" rx="2" stroke={color} strokeWidth="1" fill={color+'44'}/>
+      </>}
+    </svg>
+  );
+};
+
+const ToastContainer = ({ toasts }) => (
+  <div className="toast-wrap">
+    {toasts.map(t => (
+      <div key={t.id} className={`toast ${t.type || ''}`}>{t.msg}</div>
+    ))}
+  </div>
+);
+
+const Navbar = ({ page, setPage, cart, wishlist, user, search, setSearch }) => {
+  const navLinks = [
+    { label: 'Home', key: 'home' },
+    { label: 'Shop', key: 'shop' },
+    { label: 'About', key: 'home' },
+  ];
+  return (
+    <nav>
+      <div className="nav-inner">
+        <div className="nav-logo" style={{cursor:'pointer'}} onClick={() => setPage('home')}>
+          NO<span>V</span>A
+        </div>
+        <div className="nav-links">
+          {navLinks.map(l => (
+            <span key={l.key} className={`nav-link${page === l.key ? ' active' : ''}`} onClick={() => setPage(l.key)}>{l.label}</span>
+          ))}
+          {user?.isAdmin && (
+            <span className={`nav-link${page === 'admin' ? ' active' : ''}`} onClick={() => setPage('admin')}>Admin</span>
+          )}
+        </div>
+        <div className="nav-search">
+          <span className="search-icon"><Icon.Search /></span>
+          <input
+            placeholder="Search products…"
+            value={search}
+            onChange={e => { setSearch(e.target.value); if (e.target.value) setPage('shop'); }}
+          />
+        </div>
+        <div className="nav-actions">
+          <button className="nav-icon-btn" onClick={() => setPage('wishlist')} title="Wishlist">
+            <Icon.Heart />
+            {wishlist.length > 0 && <span className="badge" style={{background:'#c0392b'}}>{wishlist.length}</span>}
+          </button>
+          <button className="nav-icon-btn" onClick={() => setPage('cart')} title="Cart">
+            <Icon.Cart />
+            {cart.length > 0 && <span className="badge">{cart.reduce((a,i) => a + i.qty, 0)}</span>}
+          </button>
+          <button className="nav-icon-btn" onClick={() => setPage(user ? 'profile' : 'auth')} title="Account">
+            {user
+              ? <span style={{width:28,height:28,borderRadius:'50%',background:'var(--c-gold)',color:'#fff',fontWeight:700,fontSize:13,display:'flex',alignItems:'center',justifyContent:'center'}}>{user.name[0]}</span>
+              : <Icon.User />
+            }
+          </button>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+// ── Auth Page (Redesigned) ─────────────────────────────────────────────────────
+const AuthPage = ({ setUser, setPage, addToast, cart, wishlist, user }) => {
+  const [tab, setTab] = useState('login');
+  const [form, setForm] = useState({ name:'', email:'', password:'', confirm:'' });
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [strength, setStrength] = useState(0);
+  const [remember, setRemember] = useState(false);
+  const set = k => e => setForm(f => ({...f, [k]: e.target.value}));
+
+  const checkStrength = (v) => {
+    let s = 0;
+    if (v.length >= 8) s++;
+    if (/[A-Z]/.test(v)) s++;
+    if (/[0-9]/.test(v)) s++;
+    if (/[^A-Za-z0-9]/.test(v)) s++;
+    setStrength(v.length === 0 ? 0 : s);
+  };
+
+  const strengthColors = ['', '#e24b4a', '#ef9f27', '#1d9e75', '#0f6e56'];
+  const strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+
+  const handleLogin = () => {
+    if (!form.email || !form.password) return addToast('Please fill all fields', 'error');
+    const isAdmin = form.email.includes('admin');
+    setUser({ name: isAdmin ? 'Admin User' : 'Priya Sharma', email: form.email, isAdmin });
+    addToast(`Welcome back${isAdmin ? ', Admin' : ''}!`, 'success');
+    setPage(isAdmin ? 'admin' : 'home');
+  };
+
+  const handleRegister = () => {
+    if (!form.name || !form.email || !form.password) return addToast('Please fill all fields', 'error');
+    if (form.password !== form.confirm) return addToast('Passwords do not match', 'error');
+    setUser({ name: form.name, email: form.email, isAdmin: false });
+    addToast('Account created! Welcome to NOVA 🎉', 'success');
+    setPage('home');
+  };
+
+  const navItems = [
+    { label: 'Home', key: 'home', icon: <Icon.Home /> },
+    { label: 'Shop', key: 'shop', icon: <Icon.Grid /> },
+    { label: 'Cart', key: 'cart', icon: <Icon.Cart /> },
+    { label: 'Wishlist', key: 'wishlist', icon: <Icon.Heart /> },
+  ];
+
+  return (
+    <div className="auth-page-wrap">
+      {/* Top nav */}
+      <div className="auth-topnav">
+        <div className="auth-topnav-logo" style={{cursor:'pointer'}} onClick={() => setPage('home')}>
+          NO<span style={{color:'var(--c-gold)'}}>V</span>A
+        </div>
+        <div className="auth-topnav-links">
+          {navItems.map(item => (
+            <button key={item.key} className="auth-nav-btn" onClick={() => setPage(item.key)}
+              style={{display:'flex',alignItems:'center',gap:6}}>
+              {item.icon} {item.label}
+              {item.key === 'cart' && cart.length > 0 && (
+                <span style={{background:'var(--c-gold)',color:'#fff',fontSize:10,fontWeight:700,width:16,height:16,borderRadius:'50%',display:'inline-flex',alignItems:'center',justifyContent:'center'}}>
+                  {cart.reduce((a,i)=>a+i.qty,0)}
+                </span>
+              )}
+              {item.key === 'wishlist' && wishlist.length > 0 && (
+                <span style={{background:'var(--c-red)',color:'#fff',fontSize:10,fontWeight:700,width:16,height:16,borderRadius:'50%',display:'inline-flex',alignItems:'center',justifyContent:'center'}}>
+                  {wishlist.length}
+                </span>
+              )}
+            </button>
+          ))}
+          <div className="auth-nav-divider" />
+          <button className="auth-nav-btn gold" onClick={() => {
+            setForm(f => ({...f, email:'admin@nova.com', password:'admin123'}));
+            setTab('login');
+            addToast('Admin credentials filled — click Sign In', 'success');
+          }}>
+            Admin ↗
+          </button>
+        </div>
+      </div>
+
+      {/* Auth card */}
+      <div className="auth-content">
+        <div className="auth-split fade-in">
+          {/* Left panel */}
+          <div className="auth-left">
+            <div className="auth-left-orb" />
+            <div className="auth-left-orb2" />
+            <div className="auth-left-logo">NO<span>V</span>A</div>
+            <div>
+              <div className="auth-left-tag">Premium Commerce</div>
+              <div className="auth-left-title">Curated for<br /><em>discerning</em><br />tastes</div>
+              <p className="auth-left-sub">Hand-picked products from around the world, delivered to your door.</p>
+            </div>
+            <div className="auth-trust">
+              {[
+                { icon: <Icon.Shield />, text: 'SSL encrypted — all data protected' },
+                { icon: <Icon.Check />, text: '30-day hassle-free returns' },
+                { icon: <Icon.Truck />, text: 'Free delivery on orders above ₹999' },
+              ].map(({ icon, text }) => (
+                <div key={text} className="auth-trust-item">
+                  <div className="auth-trust-dot" style={{color:'var(--c-gold)'}}>{icon}</div>
+                  <span className="auth-trust-text">{text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right panel */}
+          <div className="auth-right">
+            <div className="auth-tabs">
+              <button className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => setTab('login')}>Sign In</button>
+              <button className={`auth-tab${tab === 'register' ? ' active' : ''}`} onClick={() => setTab('register')}>Register</button>
+            </div>
+
+            {/* LOGIN FORM */}
+            {tab === 'login' && (
+              <div>
+                <div className="auth-form-title">Welcome back</div>
+                <p className="auth-form-sub">Sign in to your NOVA account</p>
+                <div className="auth-admin-tip">
+                  💡 Tip: use <code>admin@nova.com</code> to access the admin panel
+                </div>
+                {/* Social */}
+                <div className="auth-social-row">
+                  <button className="auth-social-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Google
+                  </button>
+                  <button className="auth-social-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#1877F2"/><path d="M16 8h-2a1 1 0 00-1 1v2h3l-.5 3H13v7h-3v-7H8v-3h2V9a4 4 0 014-4h2v3z" fill="#fff"/></svg>
+                    Facebook
+                  </button>
+                </div>
+                <div className="auth-divider"><span>or with email</span></div>
+                <div className="auth-fgroup">
+                  <label className="auth-flabel">Email address</label>
+                  <input className="auth-finput" type="email" placeholder="you@example.com"
+                    value={form.email} onChange={set('email')} />
+                </div>
+                <div className="auth-fgroup">
+                  <label className="auth-flabel">Password</label>
+                  <div className="auth-finput-wrap">
+                    <input className="auth-finput has-icon" type={showPass ? 'text' : 'password'}
+                      placeholder="••••••••" value={form.password} onChange={set('password')} />
+                    <button className="auth-eye-btn" onClick={() => setShowPass(s => !s)} type="button" tabIndex={-1}>
+                      {showPass ? <Icon.EyeOff /> : <Icon.Eye />}
+                    </button>
+                  </div>
+                </div>
+                <div className="auth-meta-row">
+                  <div className="auth-check-row">
+                    <input type="checkbox" id="remember" checked={remember} onChange={e => setRemember(e.target.checked)} />
+                    <label htmlFor="remember">Remember me</label>
+                  </div>
+                  <button className="auth-forgot">Forgot password?</button>
+                </div>
+                <button className="auth-submit-btn" onClick={handleLogin}>Sign In</button>
+                <div className="auth-switch-row">
+                  Don't have an account? <span onClick={() => setTab('register')}>Create one</span>
+                </div>
+              </div>
+            )}
+
+            {/* REGISTER FORM */}
+            {tab === 'register' && (
+              <div>
+                <div className="auth-form-title">Create account</div>
+                <p className="auth-form-sub">Join NOVA — it's free</p>
+                <div className="auth-fgroup">
+                  <label className="auth-flabel">Full name</label>
+                  <input className="auth-finput" type="text" placeholder="Your full name"
+                    value={form.name} onChange={set('name')} />
+                </div>
+                <div className="auth-fgroup">
+                  <label className="auth-flabel">Email address</label>
+                  <input className="auth-finput" type="email" placeholder="you@example.com"
+                    value={form.email} onChange={set('email')} />
+                </div>
+                <div className="auth-fgroup">
+                  <label className="auth-flabel">Password</label>
+                  <div className="auth-finput-wrap">
+                    <input className="auth-finput has-icon" type={showPass ? 'text' : 'password'}
+                      placeholder="Min. 8 characters" value={form.password}
+                      onChange={e => { set('password')(e); checkStrength(e.target.value); }} />
+                    <button className="auth-eye-btn" onClick={() => setShowPass(s => !s)} type="button" tabIndex={-1}>
+                      {showPass ? <Icon.EyeOff /> : <Icon.Eye />}
+                    </button>
+                  </div>
+                  <div className="auth-strength-bar">
+                    {[1,2,3,4].map(i => (
+                      <div key={i} className="auth-sbar"
+                        style={{background: i <= strength && strength > 0 ? strengthColors[strength] : 'var(--c-border)'}} />
+                    ))}
+                  </div>
+                  {form.password && (
+                    <div className="auth-strength-label" style={{color: strengthColors[strength]}}>
+                      {strengthLabels[strength]}
+                    </div>
+                  )}
+                </div>
+                <div className="auth-fgroup">
+                  <label className="auth-flabel">Confirm password</label>
+                  <div className="auth-finput-wrap">
+                    <input className="auth-finput has-icon" type={showConfirm ? 'text' : 'password'}
+                      placeholder="••••••••" value={form.confirm} onChange={set('confirm')} />
+                    <button className="auth-eye-btn" onClick={() => setShowConfirm(s => !s)} type="button" tabIndex={-1}>
+                      {showConfirm ? <Icon.EyeOff /> : <Icon.Eye />}
+                    </button>
+                  </div>
+                </div>
+                <div className="auth-check-row" style={{marginBottom:14}}>
+                  <input type="checkbox" id="terms" />
+                  <label htmlFor="terms" style={{fontSize:12,color:'var(--c-ink2)'}}>
+                    I agree to the <span style={{color:'var(--c-gold)',cursor:'pointer'}}>Terms</span> and <span style={{color:'var(--c-gold)',cursor:'pointer'}}>Privacy Policy</span>
+                  </label>
+                </div>
+                <button className="auth-submit-btn" onClick={handleRegister}>Create Account</button>
+                <div className="auth-switch-row">
+                  Already have an account? <span onClick={() => setTab('login')}>Sign in</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const HomePage = ({ products, setPage, addToCart, toggleWishlist, wishlist, addToast, goToCategory }) => {
+  const featured = products.slice(0, 8);
+  const newArrivals = products.filter(p => p.isNew);
+  return (
+    <div>
+      <section className="hero">
+        <div className="hero-inner">
+          <div className="fade-in">
+            <p className="hero-eyebrow">New Collection — 2026</p>
+            <h1>Curated for<br /><em>Discerning</em><br />Tastes</h1>
+            <p className="hero-sub">Premium products from around the world, hand-picked for quality, design, and everyday excellence.</p>
+            <div className="hero-actions">
+              <button className="btn btn-primary btn-lg" onClick={() => setPage('shop')}>Explore Collection</button>
+              <button className="btn btn-outline btn-lg" onClick={() => setPage('shop')}>View Offers</button>
+            </div>
+          </div>
+          <div className="hero-img fade-in-2">
+            <div className="hero-img-grid">
+              {['Electronics', 'Fashion', 'Home & Living', 'Sports'].map(cat => (
+                <div key={cat} className="hero-img-card" style={{background: CAT_COLORS[cat]+'44', borderRadius:12}}>
+                  <ProductSVG product={{category: cat}} size={56} />
+                  <span style={{color:'rgba(255,255,255,0.8)',fontSize:11,fontWeight:600,letterSpacing:'0.04em'}}>{cat}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="page" style={{paddingBottom:0}}>
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <h2 className="section-title">Shop by Category</h2>
+              <p className="section-sub">Explore our curated collections</p>
+            </div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(140px, 1fr))',gap:12,marginBottom:48}}>
+            {CATEGORIES.filter(c=>c!=='All').map(cat => (
+              <div key={cat} onClick={() => goToCategory(cat)}
+                style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:12,padding:'20px 12px',textAlign:'center',cursor:'pointer',transition:'all 0.2s'}}
+                onMouseEnter={e => { e.currentTarget.style.borderColor='var(--c-gold)'; e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='var(--shadow)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor='var(--c-border)'; e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='none'; }}>
+                <ProductSVG product={{category:cat}} size={52} />
+                <p style={{fontSize:13,fontWeight:600,marginTop:10,color:'var(--c-ink)'}}>{cat}</p>
+                <p style={{fontSize:11,color:'var(--c-ink3)',marginTop:2}}>{products.filter(p=>p.category===cat).length} items</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="page" style={{paddingTop:40}}>
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <h2 className="section-title">Featured Products</h2>
+              <p className="section-sub">Handpicked for you this season</p>
+            </div>
+            <button className="btn btn-outline-dark btn-sm" onClick={() => setPage('shop')}>View all →</button>
+          </div>
+          <div className="product-grid">
+            {featured.map(p => (
+              <ProductCard key={p.id} product={p} setPage={setPage} addToCart={addToCart}
+                toggleWishlist={toggleWishlist} wishlisted={wishlist.includes(p.id)} addToast={addToast} />
+            ))}
+          </div>
+        </div>
+      </section>
+      <section style={{background:'var(--c-ink)',padding:'60px 0'}}>
+        <div className="container" style={{textAlign:'center'}}>
+          <p style={{fontSize:12,fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--c-gold)',marginBottom:12}}>Limited Time Offer</p>
+          <h2 style={{fontFamily:'var(--font-display)',fontSize:'clamp(36px,5vw,60px)',fontWeight:600,color:'#fff',marginBottom:16}}>
+            Up to 40% Off <em style={{fontStyle:'italic',color:'var(--c-gold)'}}>Sale Items</em>
+          </h2>
+          <p style={{fontSize:16,color:'rgba(255,255,255,0.6)',marginBottom:28,maxWidth:480,margin:'0 auto 28px'}}>
+            Use code <strong style={{color:'#fff',fontFamily:'var(--font-mono)',letterSpacing:'0.1em'}}>NOVA2024</strong> at checkout for an extra 10% off.
+          </p>
+          <button className="btn btn-primary btn-lg" onClick={() => setPage('shop')}>Shop the Sale</button>
+        </div>
+      </section>
+      {newArrivals.length > 0 && (
+        <section className="page">
+          <div className="container">
+            <div className="section-head">
+              <div>
+                <h2 className="section-title">New Arrivals</h2>
+                <p className="section-sub">Fresh picks, just landed</p>
+              </div>
+            </div>
+            <div className="product-grid">
+              {newArrivals.map(p => (
+                <ProductCard key={p.id} product={p} setPage={setPage} addToCart={addToCart}
+                  toggleWishlist={toggleWishlist} wishlisted={wishlist.includes(p.id)} addToast={addToast} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+      <section style={{borderTop:'1px solid var(--c-border)',borderBottom:'1px solid var(--c-border)',padding:'40px 0',background:'var(--c-surface)'}}>
+        <div className="container">
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:32}}>
+            {[
+              {icon:<Icon.Truck/>, title:'Free Delivery', sub:'On orders above ₹999'},
+              {icon:<Icon.Shield/>, title:'Secure Payment', sub:'100% protected transactions'},
+              {icon:<Icon.Package/>, title:'Easy Returns', sub:'30-day hassle-free returns'},
+              {icon:<Icon.Tag/>, title:'Best Prices', sub:'Price match guarantee'},
+            ].map(({icon,title,sub}) => (
+              <div key={title} style={{display:'flex',alignItems:'center',gap:14}}>
+                <div style={{width:44,height:44,background:'var(--c-gold-lt)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--c-gold)',flexShrink:0}}>{icon}</div>
+                <div>
+                  <p style={{fontSize:14,fontWeight:700,color:'var(--c-ink)',marginBottom:2}}>{title}</p>
+                  <p style={{fontSize:12,color:'var(--c-ink3)'}}>{sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+const ProductCard = ({ product: p, setPage, addToCart, toggleWishlist, wishlisted, addToast }) => (
+  <div className="product-card fade-in" onClick={() => setPage('detail:' + p.id)}>
+    <div className="product-card-img" style={{background: CAT_COLORS[p.category]+'12'}}>
+      <ProductSVG product={p} size={96} />
+      {p.discount > 0 && <span className="product-card-badge">-{p.discount}%</span>}
+      {p.isNew && <span className="product-card-badge new">NEW</span>}
+      <button
+        className={`product-card-wish${wishlisted ? ' active' : ''}`}
+        onClick={e => { e.stopPropagation(); toggleWishlist(p.id); addToast(wishlisted ? 'Removed from wishlist' : 'Added to wishlist ♥', 'success'); }}>
+        <Icon.Heart filled={wishlisted} />
+      </button>
+    </div>
+    <div className="product-card-body">
+      <p className="product-card-cat">{p.category}</p>
+      <p className="product-card-name">{p.name}</p>
+      <div className="product-card-rating">
+        <Stars rating={p.rating} />
+        <span className="rating-count">({p.reviews.toLocaleString()})</span>
+      </div>
+      <div className="product-card-footer">
+        <div>
+          <span className="price">{fmt(p.price)}</span>
+          {p.oldPrice && <span className="price-old">{fmt(p.oldPrice)}</span>}
+        </div>
+        <button className="add-cart-btn"
+          onClick={e => { e.stopPropagation(); addToCart(p); addToast('Added to cart!', 'success'); }}>
+          <Icon.Plus />
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const ShopPage = ({ products, setPage, addToCart, toggleWishlist, wishlist, addToast, searchQuery, initialCategory, onCategoryChange }) => {
+  const [selectedCat, setCat] = useState(initialCategory || 'All');
+  useEffect(() => { if (initialCategory) setCat(initialCategory); }, [initialCategory]);
+  const handleCatChange = (cat) => { setCat(cat); if (onCategoryChange) onCategoryChange(cat); };
+  const [sort, setSort] = useState('featured');
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
+  const [minRating, setMinRating] = useState(0);
+  const [inStockOnly, setInStockOnly] = useState(false);
+  let filtered = products.filter(p => {
+    if (selectedCat !== 'All' && p.category !== selectedCat) return false;
+    if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase()) && !p.category.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (priceMin && p.price < parseInt(priceMin)) return false;
+    if (priceMax && p.price > parseInt(priceMax)) return false;
+    if (p.rating < minRating) return false;
+    if (inStockOnly && p.stock === 0) return false;
+    return true;
+  });
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === 'price-asc') return a.price - b.price;
+    if (sort === 'price-desc') return b.price - a.price;
+    if (sort === 'rating') return b.rating - a.rating;
+    if (sort === 'newest') return b.isNew - a.isNew;
+    return b.reviews - a.reviews;
+  });
+  return (
+    <div className="page">
+      <div className="container">
+        <div style={{marginBottom:28}}>
+          <h1 className="section-title">{searchQuery ? `Results for "${searchQuery}"` : selectedCat === 'All' ? 'All Products' : selectedCat}</h1>
+          <p style={{fontSize:14,color:'var(--c-ink3)',marginTop:4}}>{sorted.length} products found</p>
+        </div>
+        <div className="shop-layout">
+          <aside>
+            <div className="filter-panel">
+              <div className="filter-title">Filters</div>
+              <div className="filter-group">
+                <div className="filter-label">Category</div>
+                {CATEGORIES.map(cat => (
+                  <label key={cat} className="filter-option">
+                    <input type="radio" name="cat" checked={selectedCat===cat} onChange={() => handleCatChange(cat)} />
+                    <span>{cat} {cat!=='All' && `(${products.filter(p=>p.category===cat).length})`}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="filter-group">
+                <div className="filter-label">Price Range</div>
+                <div className="price-range">
+                  <input placeholder="Min" value={priceMin} onChange={e=>setPriceMin(e.target.value)} type="number" />
+                  <span>—</span>
+                  <input placeholder="Max" value={priceMax} onChange={e=>setPriceMax(e.target.value)} type="number" />
+                </div>
+              </div>
+              <div className="filter-group">
+                <div className="filter-label">Min Rating</div>
+                {[4,3,2,1,0].map(r => (
+                  <label key={r} className="filter-option">
+                    <input type="radio" name="rating" checked={minRating===r} onChange={() => setMinRating(r)} />
+                    <span>{r === 0 ? 'All' : <>{Array(r).fill('★').join('')} & above</>}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="filter-group">
+                <label className="filter-option">
+                  <input type="checkbox" checked={inStockOnly} onChange={e=>setInStockOnly(e.target.checked)} />
+                  <span>In Stock Only</span>
+                </label>
+              </div>
+              <button className="btn btn-outline-dark btn-sm btn-full" style={{marginTop:4}}
+                onClick={() => { handleCatChange('All'); setPriceMin(''); setPriceMax(''); setMinRating(0); setInStockOnly(false); }}>
+                Clear Filters
+              </button>
+            </div>
+          </aside>
+          <div>
+            <div className="sort-bar">
+              <p className="results-count"><strong>{sorted.length}</strong> products</p>
+              <select className="sort-select" value={sort} onChange={e=>setSort(e.target.value)}>
+                <option value="featured">Featured</option>
+                <option value="price-asc">Price: Low → High</option>
+                <option value="price-desc">Price: High → Low</option>
+                <option value="rating">Highest Rated</option>
+                <option value="newest">Newest First</option>
+              </select>
+            </div>
+            {sorted.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">🔍</div>
+                <h2 className="empty-title">No products found</h2>
+                <p className="empty-sub">Try adjusting your filters or search query.</p>
+              </div>
+            ) : (
+              <div className="product-grid">
+                {sorted.map(p => (
+                  <ProductCard key={p.id} product={p} setPage={setPage} addToCart={addToCart}
+                    toggleWishlist={toggleWishlist} wishlisted={wishlist.includes(p.id)} addToast={addToast} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DetailPage = ({ product: p, setPage, addToCart, toggleWishlist, wishlisted, addToast }) => {
+  const [qty, setQty] = useState(1);
+  const [activeTab, setActiveTab] = useState('description');
+  if (!p) return <div className="page"><div className="container"><p>Product not found.</p></div></div>;
+  const reviews = [
+    { name: 'Priya S.', rating: 5, date: 'Dec 18, 2024', text: 'Absolutely love it! Quality is outstanding and it arrived well-packaged. Highly recommend to anyone considering this.' },
+    { name: 'Rahul M.', rating: 4, date: 'Dec 12, 2024', text: 'Great product overall. Exactly as described. Minor complaint about packaging but the product itself is excellent.' },
+    { name: 'Ananya K.', rating: 5, date: 'Nov 28, 2024', text: 'Exceeded my expectations! This is my third purchase from NOVA and every time the quality speaks for itself.' },
+  ];
+  return (
+    <div className="page">
+      <div className="container">
+        <button className="btn btn-outline-dark btn-sm" style={{marginBottom:28}} onClick={() => setPage('shop')}>
+          <Icon.ArrowLeft /> Back to Shop
+        </button>
+        <div className="product-detail fade-in">
+          <div className="detail-imgs">
+            <div className="detail-main-img" style={{background:CAT_COLORS[p.category]+'12',minHeight:400}}>
+              <ProductSVG product={p} size={180} />
+            </div>
+            <div className="detail-thumbs">
+              {[0,1,2,3].map(i => (
+                <div key={i} className={`detail-thumb${i===0?' active':''}`}>
+                  <ProductSVG product={p} size={36} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="detail-info">
+            <p className="detail-cat">{p.category}</p>
+            <h1 className="detail-name">{p.name}</h1>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
+              <Stars rating={p.rating} />
+              <span style={{fontSize:15,fontWeight:600}}>{p.rating}</span>
+              <span style={{fontSize:14,color:'var(--c-ink3)'}}>({p.reviews.toLocaleString()} reviews)</span>
+            </div>
+            <div className="detail-price-row">
+              <span className="detail-price">{fmt(p.price)}</span>
+              {p.oldPrice && <span className="detail-price-old">{fmt(p.oldPrice)}</span>}
+              {p.discount > 0 && <span className="status-badge active">{p.discount}% OFF</span>}
+            </div>
+            <p className="detail-desc">{p.description}</p>
+            <div style={{background:'var(--c-bg)',borderRadius:8,padding:'12px 16px',marginBottom:20,fontSize:14}}>
+              <span style={{color:p.stock>10?'var(--c-green)':p.stock>0?'#856404':'var(--c-red)',fontWeight:600}}>
+                {p.stock > 10 ? '✓ In Stock' : p.stock > 0 ? `⚠ Only ${p.stock} left!` : '✕ Out of Stock'}
+              </span>
+              {p.stock > 0 && <span style={{color:'var(--c-ink3)',marginLeft:12}}>{p.stock} units available</span>}
+            </div>
+            <div className="qty-row">
+              <span style={{fontSize:14,fontWeight:600,color:'var(--c-ink2)'}}>Qty:</span>
+              <div className="qty-ctrl">
+                <button className="qty-btn" onClick={() => setQty(q => Math.max(1, q-1))}><Icon.Minus /></button>
+                <span className="qty-val">{qty}</span>
+                <button className="qty-btn" onClick={() => setQty(q => Math.min(p.stock, q+1))}><Icon.Plus /></button>
+              </div>
+            </div>
+            <div className="detail-actions">
+              <button className="btn btn-primary btn-lg" disabled={p.stock===0}
+                onClick={() => { addToCart(p, qty); addToast(`${p.name} added to cart!`, 'success'); }}>
+                <Icon.Cart /> Add to Cart
+              </button>
+              <button className="btn btn-outline-dark btn-lg"
+                style={wishlisted ? {borderColor:'var(--c-red)',color:'var(--c-red)'} : {}}
+                onClick={() => { toggleWishlist(p.id); addToast(wishlisted ? 'Removed from wishlist':'Added to wishlist ♥','success'); }}>
+                <Icon.Heart filled={wishlisted} />
+              </button>
+            </div>
+            <button className="btn btn-outline-dark btn-full btn-lg" style={{marginBottom:24}}
+              onClick={() => { addToCart(p, qty); setPage('checkout'); }}>
+              Buy Now
+            </button>
+            <div style={{borderBottom:'1px solid var(--c-border)',display:'flex',gap:0,marginBottom:20}}>
+              {['description','specs','reviews'].map(t => (
+                <button key={t} onClick={() => setActiveTab(t)} style={{
+                  padding:'10px 20px',fontSize:14,fontWeight:600,color:activeTab===t?'var(--c-gold)':'var(--c-ink3)',
+                  borderBottom:activeTab===t?'2px solid var(--c-gold)':'2px solid transparent',
+                  transition:'all 0.18s',textTransform:'capitalize',marginBottom:'-1px'
+                }}>{t}</button>
+              ))}
+            </div>
+            {activeTab === 'description' && (
+              <p style={{fontSize:15,color:'var(--c-ink2)',lineHeight:1.8}}>{p.description}<br/><br/>
+                Premium craftsmanship meets everyday practicality. Tested rigorously to meet NOVA's high standards.
+              </p>
+            )}
+            {activeTab === 'specs' && (
+              <table className="specs-table"><tbody>
+                {[['Category',p.category],['Rating',`${p.rating}/5 (${p.reviews} reviews)`],['Stock',`${p.stock} units`],['Discount',p.discount>0?`${p.discount}%`:'None'],['Availability',p.stock>0?'In Stock':'Out of Stock']].map(([k,v]) => (
+                  <tr key={k}><td>{k}</td><td style={{fontWeight:500}}>{v}</td></tr>
+                ))}
+              </tbody></table>
+            )}
+            {activeTab === 'reviews' && (
+              <div>
+                {reviews.map(r => (
+                  <div key={r.name} className="review-card">
+                    <div className="review-header">
+                      <div className="reviewer">
+                        <div className="reviewer-avatar">{r.name[0]}</div>
+                        <div><div className="reviewer-name">{r.name}</div><div className="reviewer-date">{r.date}</div></div>
+                      </div>
+                      <Stars rating={r.rating} />
+                    </div>
+                    <p style={{fontSize:14,color:'var(--c-ink2)',lineHeight:1.7}}>{r.text}</p>
+                  </div>
+                ))}
+                <button className="btn btn-outline-dark btn-sm" style={{marginTop:8}}>Write a Review</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CartPage = ({ cart, updateQty, removeItem, setPage, addToast }) => {
+  const [coupon, setCoupon] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const shipping = subtotal > 999 ? 0 : 99;
+  const total = subtotal + shipping - discount;
+  const applyCoupon = () => {
+    if (coupon.toUpperCase() === 'NOVA2024') { setDiscount(Math.floor(subtotal * 0.10)); addToast('Coupon applied! 10% off', 'success'); }
+    else addToast('Invalid coupon code', 'error');
+  };
+  if (cart.length === 0) return (
+    <div className="page"><div className="container">
+      <div className="empty-state">
+        <div className="empty-icon">🛒</div>
+        <h2 className="empty-title">Your cart is empty</h2>
+        <p className="empty-sub">Looks like you haven't added anything yet.</p>
+        <button className="btn btn-primary" onClick={() => setPage('shop')}>Start Shopping</button>
+      </div>
+    </div></div>
+  );
+  return (
+    <div className="page">
+      <div className="container">
+        <h1 className="section-title" style={{marginBottom:8}}>Shopping Cart</h1>
+        <p style={{fontSize:14,color:'var(--c-ink3)',marginBottom:32}}>{cart.reduce((a,i)=>a+i.qty,0)} items</p>
+        <div className="cart-layout">
+          <div>
+            {cart.map(item => (
+              <div key={item.id} className="cart-item fade-in">
+                <div className="cart-item-img" style={{background:CAT_COLORS[item.category]+'12'}}>
+                  <ProductSVG product={item} size={56} />
+                </div>
+                <div>
+                  <p className="cart-item-cat">{item.category}</p>
+                  <p className="cart-item-name">{item.name}</p>
+                  <p className="cart-item-price">{fmt(item.price)}</p>
+                  <div className="cart-item-actions">
+                    <div className="qty-ctrl" style={{borderRadius:6}}>
+                      <button className="qty-btn" style={{width:32,height:32}} onClick={() => updateQty(item.id, item.qty-1)}><Icon.Minus /></button>
+                      <span className="qty-val" style={{width:36,fontSize:14}}>{item.qty}</span>
+                      <button className="qty-btn" style={{width:32,height:32}} onClick={() => updateQty(item.id, item.qty+1)}><Icon.Plus /></button>
+                    </div>
+                    <button className="remove-btn" onClick={() => { removeItem(item.id); addToast('Removed from cart'); }}>Remove</button>
+                  </div>
+                </div>
+                <div style={{textAlign:'right',flexShrink:0}}>
+                  <p style={{fontSize:17,fontWeight:700,color:'var(--c-ink)'}}>{fmt(item.price * item.qty)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div>
+            <div className="summary-card">
+              <h2 className="summary-title">Order Summary</h2>
+              <div className="summary-row"><span className="label">Subtotal</span><span>{fmt(subtotal)}</span></div>
+              <div className="summary-row"><span className="label">Shipping</span><span>{shipping === 0 ? <span style={{color:'var(--c-green)'}}>Free</span> : fmt(shipping)}</span></div>
+              {discount > 0 && <div className="summary-row"><span className="label">Discount</span><span style={{color:'var(--c-green)'}}>-{fmt(discount)}</span></div>}
+              <div className="summary-row total"><span>Total</span><span>{fmt(total)}</span></div>
+              <div className="coupon-row">
+                <input placeholder="Coupon code (try NOVA2024)" value={coupon} onChange={e=>setCoupon(e.target.value)} />
+                <button className="btn btn-outline-dark btn-sm" onClick={applyCoupon}>Apply</button>
+              </div>
+              <button className="btn btn-primary btn-full btn-lg" onClick={() => setPage('checkout')}>Proceed to Checkout</button>
+              <button className="btn btn-outline-dark btn-full btn-sm" style={{marginTop:10}} onClick={() => setPage('shop')}>Continue Shopping</button>
+              <div style={{marginTop:16,display:'flex',alignItems:'center',gap:6,justifyContent:'center',fontSize:12,color:'var(--c-ink3)'}}>
+                <Icon.Shield /> <span>Secure SSL checkout</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CheckoutPage = ({ cart, setPage, addToast, clearCart, user }) => {
+  const [payMethod, setPayMethod] = useState('card');
+  const [form, setForm] = useState({ firstName: user?.name?.split(' ')[0]||'', lastName:'', email:user?.email||'', phone:'', address:'', city:'', state:'', zip:'', cardName:'', cardNum:'', expiry:'', cvv:'' });
+  const subtotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const total = subtotal > 999 ? subtotal : subtotal + 99;
+  const set = k => e => setForm(f=>({...f,[k]:e.target.value}));
+  const placeOrder = () => {
+    addToast('🎉 Order placed successfully! Order #NOV-10031', 'success');
+    clearCart();
+    setPage('orders');
+  };
+  if (cart.length === 0) return <div className="page"><div className="container"><p>Your cart is empty. <button className="btn btn-outline-dark btn-sm" onClick={()=>setPage('shop')}>Shop Now</button></p></div></div>;
+  return (
+    <div className="page">
+      <div className="container">
+        <button className="btn btn-outline-dark btn-sm" style={{marginBottom:24}} onClick={()=>setPage('cart')}><Icon.ArrowLeft /> Back to Cart</button>
+        <h1 className="section-title" style={{marginBottom:32}}>Checkout</h1>
+        <div className="checkout-layout">
+          <div>
+            <div className="checkout-card">
+              <div className="checkout-section-title"><span className="step-num">1</span> Shipping Address</div>
+              <div className="form-grid">
+                {[['firstName','First Name'],['lastName','Last Name']].map(([k,l])=>(
+                  <div key={k} className="form-group"><label className="form-label">{l}</label><input className="form-input" value={form[k]} onChange={set(k)} placeholder={l}/></div>
+                ))}
+                <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" value={form.email} onChange={set('email')} placeholder="email@example.com"/></div>
+                <div className="form-group"><label className="form-label">Phone</label><input className="form-input" type="tel" value={form.phone} onChange={set('phone')} placeholder="+91 98765 43210"/></div>
+                <div className="form-group full"><label className="form-label">Address</label><input className="form-input" value={form.address} onChange={set('address')} placeholder="Street address, apartment, etc."/></div>
+                {[['city','City'],['state','State'],['zip','PIN Code']].map(([k,l])=>(
+                  <div key={k} className="form-group"><label className="form-label">{l}</label><input className="form-input" value={form[k]} onChange={set(k)} placeholder={l}/></div>
+                ))}
+              </div>
+            </div>
+            <div className="checkout-card">
+              <div className="checkout-section-title"><span className="step-num">2</span> Payment Method</div>
+              {[
+                {key:'card', label:'Credit / Debit Card'},
+                {key:'upi', label:'UPI Payment'},
+                {key:'netbanking', label:'Net Banking'},
+                {key:'cod', label:'Cash on Delivery'},
+              ].map(opt => (
+                <div key={opt.key} className={`payment-option${payMethod===opt.key?' selected':''}`} onClick={()=>setPayMethod(opt.key)}>
+                  <input type="radio" readOnly checked={payMethod===opt.key} />
+                  <span>{opt.label}</span>
+                  {opt.key==='card' && <span style={{marginLeft:'auto',fontSize:12,color:'var(--c-ink3)'}}>Visa · Mastercard · Amex</span>}
+                  {opt.key==='upi' && <span style={{marginLeft:'auto',fontSize:12,color:'var(--c-ink3)'}}>GPay · PhonePe · Paytm</span>}
+                </div>
+              ))}
+              {payMethod === 'card' && (
+                <div className="form-grid" style={{marginTop:16}}>
+                  <div className="form-group full"><label className="form-label">Cardholder Name</label><input className="form-input" value={form.cardName} onChange={set('cardName')} placeholder="As on card"/></div>
+                  <div className="form-group full"><label className="form-label">Card Number</label><input className="form-input" value={form.cardNum} onChange={set('cardNum')} placeholder="1234 5678 9012 3456" maxLength="19"/></div>
+                  <div className="form-group"><label className="form-label">Expiry</label><input className="form-input" value={form.expiry} onChange={set('expiry')} placeholder="MM/YY" maxLength="5"/></div>
+                  <div className="form-group"><label className="form-label">CVV</label><input className="form-input" value={form.cvv} onChange={set('cvv')} placeholder="•••" maxLength="4" type="password"/></div>
+                </div>
+              )}
+              {payMethod === 'upi' && (
+                <div style={{marginTop:16}}>
+                  <div className="form-group"><label className="form-label">UPI ID</label><input className="form-input" placeholder="yourname@upi"/></div>
+                </div>
+              )}
+            </div>
+            <button className="btn btn-primary btn-full btn-lg" onClick={placeOrder}>Place Order — {fmt(total)}</button>
+            <p style={{fontSize:12,color:'var(--c-ink3)',textAlign:'center',marginTop:10,display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
+              <Icon.Shield /> Secured by SSL encryption
+            </p>
+          </div>
+          <div>
+            <div className="summary-card">
+              <h2 className="summary-title" style={{fontSize:18}}>Your Order</h2>
+              {cart.map(i => (
+                <div key={i.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:'1px solid var(--c-border)'}}>
+                  <div style={{width:40,height:40,borderRadius:6,background:CAT_COLORS[i.category]+'18',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <ProductSVG product={i} size={28} />
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <p style={{fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{i.name}</p>
+                    <p style={{fontSize:12,color:'var(--c-ink3)'}}>Qty: {i.qty}</p>
+                  </div>
+                  <span style={{fontSize:14,fontWeight:600,flexShrink:0}}>{fmt(i.price*i.qty)}</span>
+                </div>
+              ))}
+              <div className="summary-row" style={{marginTop:8}}><span className="label">Subtotal</span><span>{fmt(subtotal)}</span></div>
+              <div className="summary-row"><span className="label">Shipping</span><span>{subtotal>999?<span style={{color:'var(--c-green)'}}>Free</span>:fmt(99)}</span></div>
+              <div className="summary-row total"><span>Total</span><span>{fmt(total)}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ProfilePage = ({ user, setUser, setPage, orders, addToast }) => {
+  const [activeTab, setActiveTab] = useState('profile');
+  const [form, setForm] = useState({ name: user?.name||'', email: user?.email||'', phone:'', address:'' });
+  const set = k => e => setForm(f=>({...f,[k]:e.target.value}));
+  const tabs = [
+    { key:'profile', label:'My Profile', icon:<Icon.User/> },
+    { key:'orders', label:'Orders', icon:<Icon.Package/> },
+    { key:'wishlist', label:'Wishlist', icon:<Icon.Heart/> },
+    { key:'settings', label:'Settings', icon:<Icon.Settings/> },
+  ];
+  return (
+    <div className="page">
+      <div className="container">
+        <div className="profile-layout">
+          <aside>
+            <div className="profile-sidebar">
+              <div className="profile-header">
+                <div className="avatar">{user?.name?.[0]||'U'}</div>
+                <div className="profile-name">{user?.name}</div>
+                <div className="profile-email">{user?.email}</div>
+              </div>
+              <div className="profile-nav">
+                {tabs.map(t => (
+                  <div key={t.key} className={`profile-nav-item${activeTab===t.key?' active':''}`} onClick={() => setActiveTab(t.key)}>
+                    <span style={{fontSize:16}}>{t.icon}</span> {t.label}
+                  </div>
+                ))}
+                <div className="profile-nav-item" style={{color:'var(--c-red)',marginTop:8}}
+                  onClick={() => { setUser(null); setPage('home'); addToast('Logged out'); }}>
+                  <Icon.LogOut /> Sign Out
+                </div>
+              </div>
+            </div>
+          </aside>
+          <div className="fade-in">
+            {activeTab === 'profile' && (
+              <div className="checkout-card">
+                <div className="checkout-section-title" style={{borderBottom:'none',marginBottom:12}}>
+                  <span className="step-num" style={{background:'var(--c-ink)'}}><Icon.User /></span> Personal Information
+                </div>
+                <div className="form-grid">
+                  <div className="form-group full"><label className="form-label">Full Name</label><input className="form-input" value={form.name} onChange={set('name')}/></div>
+                  <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" value={form.email} onChange={set('email')}/></div>
+                  <div className="form-group"><label className="form-label">Phone</label><input className="form-input" value={form.phone} onChange={set('phone')} placeholder="+91 98765 43210"/></div>
+                  <div className="form-group full"><label className="form-label">Address</label><input className="form-input" value={form.address} onChange={set('address')} placeholder="Your address"/></div>
+                </div>
+                <button className="btn btn-primary btn-sm" style={{marginTop:16}} onClick={() => { setUser(u=>({...u,name:form.name,email:form.email})); addToast('Profile updated!','success'); }}>Save Changes</button>
+              </div>
+            )}
+            {activeTab === 'orders' && (
+              <div>
+                <h2 style={{fontFamily:'var(--font-display)',fontSize:24,marginBottom:20}}>Order History</h2>
+                {orders.length === 0 ? (
+                  <div className="empty-state"><div className="empty-icon">📦</div><h3 className="empty-title">No orders yet</h3><p className="empty-sub">Start shopping to place your first order.</p><button className="btn btn-primary" onClick={()=>setPage('shop')}>Shop Now</button></div>
+                ) : orders.map(o => (
+                  <div key={o.id} style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:10,padding:20,marginBottom:12}}>
+                    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12,flexWrap:'wrap',gap:8}}>
+                      <div>
+                        <p style={{fontFamily:'var(--font-mono)',fontSize:14,fontWeight:600,marginBottom:2}}>{o.id}</p>
+                        <p style={{fontSize:13,color:'var(--c-ink3)'}}>{o.date} · {o.items.length} item{o.items.length!==1?'s':''}</p>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <span className={`status-badge ${o.status}`}>{o.status}</span>
+                        <p style={{fontSize:16,fontWeight:700,marginTop:6}}>{fmt(o.total)}</p>
+                      </div>
+                    </div>
+                    <div className="tracking-steps">
+                      {['Ordered','Processing','Shipped','Delivered'].map((s,i)=>(
+                        <div key={s} className={`tracking-step${o.tracking>i?' done':o.tracking===i?' current':''}`}>
+                          <div className="tracking-step-dot">{o.tracking>i?<Icon.Check/>:o.tracking===i?<span style={{width:8,height:8,borderRadius:'50%',background:'var(--c-gold)',display:'block'}}/>:null}</div>
+                          <span className="tracking-step-label">{s}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{borderTop:'1px solid var(--c-border)',paddingTop:10,marginTop:4}}>
+                      {o.items.map((item,i) => (
+                        <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'var(--c-ink2)',padding:'3px 0'}}>
+                          <span>{item.name} ×{item.qty}</span><span>{fmt(item.price*item.qty)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {activeTab === 'settings' && (
+              <div className="checkout-card">
+                <div className="checkout-section-title" style={{borderBottom:'none'}}><span className="step-num" style={{background:'var(--c-ink)'}}><Icon.Settings /></span> Account Settings</div>
+                <div style={{display:'flex',flexDirection:'column',gap:14}}>
+                  <div className="form-group"><label className="form-label">New Password</label><input className="form-input" type="password" placeholder="••••••••"/></div>
+                  <div className="form-group"><label className="form-label">Confirm Password</label><input className="form-input" type="password" placeholder="••••••••"/></div>
+                  <button className="btn btn-outline-dark btn-sm" style={{width:'fit-content'}} onClick={()=>addToast('Password changed!','success')}>Update Password</button>
+                  <div style={{borderTop:'1px solid var(--c-border)',paddingTop:16,marginTop:4}}>
+                    <p style={{fontSize:14,fontWeight:600,color:'var(--c-red)',marginBottom:8}}>Danger Zone</p>
+                    <button className="btn btn-sm" style={{background:'#fdf2f2',color:'var(--c-red)',border:'1px solid #f5c6cb'}}>Delete Account</button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeTab === 'wishlist' && (
+              <div>
+                <h2 style={{fontFamily:'var(--font-display)',fontSize:24,marginBottom:20}}>My Wishlist</h2>
+                <p style={{color:'var(--c-ink3)',fontSize:14}}>Visit the <span style={{color:'var(--c-gold)',cursor:'pointer',fontWeight:600}} onClick={()=>setPage('wishlist')}>Wishlist page</span> to view and manage your saved items.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const WishlistPage = ({ wishlist, products, setPage, addToCart, toggleWishlist, addToast }) => {
+  const items = products.filter(p => wishlist.includes(p.id));
+  return (
+    <div className="page">
+      <div className="container">
+        <h1 className="section-title" style={{marginBottom:8}}>My Wishlist</h1>
+        <p style={{fontSize:14,color:'var(--c-ink3)',marginBottom:32}}>{items.length} saved item{items.length!==1?'s':''}</p>
+        {items.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">♥</div>
+            <h2 className="empty-title">Your wishlist is empty</h2>
+            <p className="empty-sub">Save items you love for later.</p>
+            <button className="btn btn-primary" onClick={()=>setPage('shop')}>Discover Products</button>
+          </div>
+        ) : (
+          <div className="product-grid">
+            {items.map(p => (
+              <ProductCard key={p.id} product={p} setPage={setPage} addToCart={addToCart}
+                toggleWishlist={toggleWishlist} wishlisted={true} addToast={addToast} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const AdminPanel = ({ products: initialProducts, orders, setPage }) => {
+  const [view, setView] = useState('dashboard');
+  const [products, setProducts] = useState(initialProducts);
+  const [showModal, setShowModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [newProd, setNewProd] = useState({ name:'', category:'Electronics', price:'', oldPrice:'', stock:'', rating:'4.5', reviews:'0', description:'' });
+  const setP = k => e => setNewProd(p=>({...p,[k]:e.target.value}));
+  const saveProduct = () => {
+    if (editingProduct) {
+      setProducts(ps => ps.map(p => p.id===editingProduct.id ? {...p,...newProd,price:parseInt(newProd.price),stock:parseInt(newProd.stock)} : p));
+    } else {
+      setProducts(ps => [...ps, {...newProd, id:Date.now(), price:parseInt(newProd.price), stock:parseInt(newProd.stock), reviews:0, rating:4.5, isNew:true, discount:0 }]);
+    }
+    setShowModal(false); setEditingProduct(null);
+    setNewProd({ name:'', category:'Electronics', price:'', oldPrice:'', stock:'', rating:'4.5', reviews:'0', description:'' });
+  };
+  const openEdit = (p) => { setEditingProduct(p); setNewProd({...p, price:String(p.price), oldPrice:String(p.oldPrice||''), stock:String(p.stock)}); setShowModal(true); };
+  const stats = [
+    { label:'Total Revenue', value:'₹1,24,856', change:'+12.4%', up:true },
+    { label:'Total Orders', value:'348', change:'+8.2%', up:true },
+    { label:'Products', value:products.length, change:'+3', up:true },
+    { label:'Customers', value:'1,204', change:'+5.1%', up:true },
+  ];
+  const navItems = [
+    { key:'dashboard', label:'Dashboard', icon:<Icon.BarChart/> },
+    { key:'products', label:'Products', icon:<Icon.Package/> },
+    { key:'orders', label:'Orders', icon:<Icon.Truck/> },
+    { key:'customers', label:'Customers', icon:<Icon.User/> },
+  ];
+  return (
+    <div className="admin-layout">
+      <aside className="admin-sidebar">
+        <div className="admin-brand">
+          <div className="admin-brand-title">Admin Panel</div>
+          <button onClick={() => setPage('home')} style={{marginTop:8,fontSize:12,color:'rgba(255,255,255,0.5)',background:'none',border:'none',cursor:'pointer',padding:0,display:'flex',alignItems:'center',gap:4}}>
+            <Icon.ArrowLeft /> Back to Store
+          </button>
+        </div>
+        {navItems.map(n => (
+          <div key={n.key} className={`admin-nav-item${view===n.key?' active':''}`} onClick={()=>setView(n.key)}>
+            {n.icon} {n.label}
+          </div>
+        ))}
+      </aside>
+      <main className="admin-main">
+        {view === 'dashboard' && (
+          <div className="fade-in">
+            <h1 style={{fontFamily:'var(--font-display)',fontSize:32,marginBottom:4}}>Dashboard</h1>
+            <p style={{color:'var(--c-ink3)',marginBottom:24,fontSize:14}}>Welcome back! Here's what's happening.</p>
+            <div className="stat-grid">
+              {stats.map(s => (
+                <div key={s.label} className="stat-card">
+                  <div className="stat-card-label">{s.label}</div>
+                  <div className="stat-card-value">{s.value}</div>
+                  <div className={`stat-card-change ${s.up?'up':'down'}`}>{s.change} vs last month</div>
+                </div>
+              ))}
+            </div>
+            <div style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:10,padding:24,marginBottom:24}}>
+              <h3 style={{fontSize:16,fontWeight:700,marginBottom:20}}>Monthly Revenue</h3>
+              <div style={{display:'flex',alignItems:'flex-end',gap:8,height:140}}>
+                {[65,42,78,55,90,72,85,60,95,82,110,100].map((v,i)=>(
+                  <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+                    <div style={{width:'100%',background:'var(--c-gold)',borderRadius:'3px 3px 0 0',height:`${v}%`,opacity:i===11?1:0.4,minWidth:8}}/>
+                    <span style={{fontSize:10,color:'var(--c-ink3)'}}>{['J','F','M','A','M','J','J','A','S','O','N','D'][i]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:10,overflow:'hidden'}}>
+              <div style={{padding:'16px 20px',borderBottom:'1px solid var(--c-border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <h3 style={{fontSize:15,fontWeight:700}}>Recent Orders</h3>
+                <button className="btn btn-outline-dark btn-sm" onClick={()=>setView('orders')}>View All</button>
+              </div>
+              <table className="admin-table">
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody>
+                  {orders.slice(0,4).map(o=>(
+                    <tr key={o.id}>
+                      <td style={{fontFamily:'var(--font-mono)',fontSize:13}}>{o.id}</td>
+                      <td>Priya Sharma</td>
+                      <td style={{color:'var(--c-ink3)'}}>{o.date}</td>
+                      <td style={{fontWeight:600}}>{fmt(o.total)}</td>
+                      <td><span className={`status-badge ${o.status}`}>{o.status}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        {view === 'products' && (
+          <div className="fade-in">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:24}}>
+              <div>
+                <h1 style={{fontFamily:'var(--font-display)',fontSize:28,marginBottom:2}}>Products</h1>
+                <p style={{color:'var(--c-ink3)',fontSize:14}}>{products.length} total products</p>
+              </div>
+              <button className="btn btn-primary" onClick={()=>{setEditingProduct(null);setNewProd({name:'',category:'Electronics',price:'',stock:'',rating:'4.5',reviews:'0',description:''});setShowModal(true);}}>
+                <Icon.Plus /> Add Product
+              </button>
+            </div>
+            <div style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:10,overflow:'hidden'}}>
+              <table className="admin-table">
+                <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {products.map(p => (
+                    <tr key={p.id}>
+                      <td style={{maxWidth:200}}>
+                        <div style={{display:'flex',alignItems:'center',gap:10}}>
+                          <div style={{width:36,height:36,borderRadius:6,background:CAT_COLORS[p.category]+'18',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                            <ProductSVG product={p} size={24} />
+                          </div>
+                          <span style={{fontWeight:500,fontSize:13,lineHeight:1.3}}>{p.name}</span>
+                        </div>
+                      </td>
+                      <td style={{color:'var(--c-ink3)',fontSize:13}}>{p.category}</td>
+                      <td style={{fontWeight:600}}>{fmt(p.price)}</td>
+                      <td><span style={p.stock>10?{color:'var(--c-green)',fontWeight:600}:{}} className={p.stock>10?'':'status-badge cancelled'}>{p.stock}</span></td>
+                      <td>⭐ {p.rating}</td>
+                      <td><span className={`status-badge ${p.stock>0?'active':'inactive'}`}>{p.stock>0?'Active':'OOS'}</span></td>
+                      <td>
+                        <div style={{display:'flex',gap:6}}>
+                          <button className="btn btn-outline-dark btn-sm btn-icon" onClick={()=>openEdit(p)}><Icon.Edit /></button>
+                          <button className="btn btn-sm btn-icon" style={{border:'1px solid #f5c6cb',color:'var(--c-red)',background:'#fdf2f2'}} onClick={()=>setProducts(ps=>ps.filter(x=>x.id!==p.id))}><Icon.Trash /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {showModal && (
+              <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.55)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:24}}>
+                <div style={{background:'var(--c-surface)',borderRadius:16,padding:32,width:'100%',maxWidth:520,maxHeight:'90vh',overflowY:'auto',boxShadow:'var(--shadow-lg)'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:24}}>
+                    <h2 style={{fontSize:20,fontWeight:700}}>{editingProduct?'Edit':'Add'} Product</h2>
+                    <button className="btn btn-outline-dark btn-sm btn-icon" onClick={()=>setShowModal(false)}><Icon.X /></button>
+                  </div>
+                  <div style={{display:'flex',flexDirection:'column',gap:14}}>
+                    <div className="form-group"><label className="form-label">Product Name</label><input className="form-input" value={newProd.name} onChange={setP('name')} placeholder="Product name"/></div>
+                    <div className="form-grid">
+                      <div className="form-group">
+                        <label className="form-label">Category</label>
+                        <select className="form-input" value={newProd.category} onChange={setP('category')}>
+                          {CATEGORIES.filter(c=>c!=='All').map(c=><option key={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <div className="form-group"><label className="form-label">Price (₹)</label><input className="form-input" type="number" value={newProd.price} onChange={setP('price')} placeholder="0"/></div>
+                      <div className="form-group"><label className="form-label">Stock</label><input className="form-input" type="number" value={newProd.stock} onChange={setP('stock')} placeholder="0"/></div>
+                      <div className="form-group"><label className="form-label">Rating</label><input className="form-input" type="number" step="0.1" min="1" max="5" value={newProd.rating} onChange={setP('rating')} placeholder="4.5"/></div>
+                    </div>
+                    <div className="form-group"><label className="form-label">Description</label><textarea className="form-input" rows={3} value={newProd.description} onChange={setP('description')} placeholder="Product description" style={{resize:'vertical'}}/></div>
+                    <div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:4}}>
+                      <button className="btn btn-outline-dark" onClick={()=>setShowModal(false)}>Cancel</button>
+                      <button className="btn btn-primary" onClick={saveProduct}>{editingProduct?'Save Changes':'Add Product'}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        {view === 'orders' && (
+          <div className="fade-in">
+            <h1 style={{fontFamily:'var(--font-display)',fontSize:28,marginBottom:24}}>All Orders</h1>
+            <div style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:10,overflow:'hidden'}}>
+              <table className="admin-table">
+                <thead><tr><th>Order ID</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                  {orders.map(o=>(
+                    <tr key={o.id}>
+                      <td style={{fontFamily:'var(--font-mono)',fontSize:13,fontWeight:600}}>{o.id}</td>
+                      <td style={{color:'var(--c-ink3)'}}>{o.date}</td>
+                      <td>{o.items.length} item{o.items.length!==1?'s':''}</td>
+                      <td style={{fontWeight:700}}>{fmt(o.total)}</td>
+                      <td><span className={`status-badge ${o.status}`}>{o.status}</span></td>
+                      <td><button className="btn btn-outline-dark btn-sm" style={{fontSize:12}}>View Details</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        {view === 'customers' && (
+          <div className="fade-in">
+            <h1 style={{fontFamily:'var(--font-display)',fontSize:28,marginBottom:24}}>Customers</h1>
+            <div style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:10,overflow:'hidden'}}>
+              <table className="admin-table">
+                <thead><tr><th>Name</th><th>Email</th><th>Orders</th><th>Total Spend</th><th>Status</th></tr></thead>
+                <tbody>
+                  {[
+                    {name:'Priya Sharma',email:'priya@example.com',orders:4,spend:49490,status:'active'},
+                    {name:'Rahul Mehta',email:'rahul@example.com',orders:2,spend:24998,status:'active'},
+                    {name:'Ananya Kumar',email:'ananya@example.com',orders:7,spend:89432,status:'active'},
+                    {name:'Vikram Singh',email:'vikram@example.com',orders:1,spend:5499,status:'active'},
+                    {name:'Neha Patel',email:'neha@example.com',orders:3,spend:32000,status:'inactive'},
+                  ].map(c=>(
+                    <tr key={c.email}>
+                      <td style={{display:'flex',alignItems:'center',gap:10}}>
+                        <div style={{width:32,height:32,borderRadius:'50%',background:'var(--c-gold-lt)',color:'var(--c-gold)',fontWeight:700,fontSize:13,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{c.name[0]}</div>
+                        <span style={{fontWeight:500}}>{c.name}</span>
+                      </td>
+                      <td style={{color:'var(--c-ink3)',fontSize:13}}>{c.email}</td>
+                      <td>{c.orders}</td>
+                      <td style={{fontWeight:600}}>{fmt(c.spend)}</td>
+                      <td><span className={`status-badge ${c.status}`}>{c.status}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+const Footer = ({ setPage }) => (
+  <footer>
+    <div className="container">
+      <div className="footer-grid">
+        <div>
+          <div className="footer-brand">NO<span>V</span>A</div>
+          <p className="footer-desc">Premium products from around the world, curated for discerning tastes. Quality, design, and everyday excellence.</p>
+        </div>
+        {[
+          { heading:'Shop', links:['All Products','Electronics','Fashion','Home & Living','Sale Items'] },
+          { heading:'Account', links:['Sign In','Register','My Orders','Wishlist','Settings'] },
+          { heading:'Help', links:['Contact Us','Shipping Info','Returns','Track Order','FAQ'] },
+        ].map(col => (
+          <div key={col.heading}>
+            <div className="footer-heading">{col.heading}</div>
+            {col.links.map(l => <span key={l} className="footer-link" onClick={()=>setPage('shop')}>{l}</span>)}
+          </div>
+        ))}
+      </div>
+      <div className="footer-bottom">
+        <span>© 2024 NOVA Commerce. All rights reserved.</span>
+        <div style={{display:'flex',gap:16}}>
+          {['Privacy Policy','Terms of Service','Cookie Policy'].map(l=>(
+            <span key={l} style={{color:'rgba(255,255,255,0.4)',cursor:'pointer',fontSize:13,transition:'color 0.18s'}}
+              onMouseEnter={e=>e.target.style.color='rgba(255,255,255,0.7)'}
+              onMouseLeave={e=>e.target.style.color='rgba(255,255,255,0.4)'}>{l}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  </footer>
+);
+
+const App = () => {
+  const [page, setPage] = useState('home');
+  const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [user, setUser] = useState(null);
+  const [search, setSearch] = useState('');
+  const [toasts, setToasts] = useState([]);
+  const [orders, setOrders] = useState(MOCK_ORDERS);
+  const [shopCategory, setShopCategory] = useState('All');
+
+  const goToCategory = useCallback((cat) => { setShopCategory(cat); setPage('shop'); }, []);
+
+  const addToast = useCallback((msg, type = '') => {
+    const id = Date.now();
+    setToasts(ts => [...ts, { id, msg, type }]);
+    setTimeout(() => setToasts(ts => ts.filter(t => t.id !== id)), 3000);
+  }, []);
+
+  const addToCart = useCallback((product, qty = 1) => {
+    setCart(c => {
+      const ex = c.find(i => i.id === product.id);
+      if (ex) return c.map(i => i.id === product.id ? {...i, qty: i.qty + qty} : i);
+      return [...c, {...product, qty}];
+    });
+  }, []);
+
+  const updateQty = useCallback((id, qty) => {
+    if (qty < 1) { setCart(c => c.filter(i => i.id !== id)); return; }
+    setCart(c => c.map(i => i.id === id ? {...i, qty} : i));
+  }, []);
+
+  const removeItem = useCallback((id) => setCart(c => c.filter(i => i.id !== id)), []);
+  const clearCart = useCallback(() => setCart([]), []);
+  const toggleWishlist = useCallback((id) => setWishlist(w => w.includes(id) ? w.filter(x=>x!==id) : [...w,id]), []);
+
+  const isDetail = page.startsWith('detail:');
+  const detailId = isDetail ? parseInt(page.split(':')[1]) : null;
+  const currentProduct = isDetail ? MOCK_PRODUCTS.find(p => p.id === detailId) : null;
+
+  const isAuthPage = page === 'auth';
+  const isAdminPage = page === 'admin';
+  const hideNav = isAuthPage || isAdminPage;
+  const hideFooter = isAuthPage || isAdminPage;
+
+  const renderPage = () => {
+    if (page === 'home') return <HomePage products={MOCK_PRODUCTS} setPage={setPage} addToCart={addToCart} toggleWishlist={toggleWishlist} wishlist={wishlist} addToast={addToast} goToCategory={goToCategory} />;
+    if (page === 'shop') return <ShopPage products={MOCK_PRODUCTS} setPage={setPage} addToCart={addToCart} toggleWishlist={toggleWishlist} wishlist={wishlist} addToast={addToast} searchQuery={search} initialCategory={shopCategory} onCategoryChange={setShopCategory} />;
+    if (isDetail) return <DetailPage product={currentProduct} setPage={setPage} addToCart={addToCart} toggleWishlist={toggleWishlist} wishlisted={wishlist.includes(detailId)} addToast={addToast} />;
+    if (page === 'cart') return <CartPage cart={cart} updateQty={updateQty} removeItem={removeItem} setPage={setPage} addToast={addToast} />;
+    if (page === 'checkout') return <CheckoutPage cart={cart} setPage={setPage} addToast={addToast} clearCart={clearCart} user={user} />;
+    if (page === 'auth') return <AuthPage setUser={setUser} setPage={setPage} addToast={addToast} cart={cart} wishlist={wishlist} user={user} />;
+    if (page === 'profile') return user ? <ProfilePage user={user} setUser={setUser} setPage={setPage} orders={orders} addToast={addToast} /> : <AuthPage setUser={setUser} setPage={setPage} addToast={addToast} cart={cart} wishlist={wishlist} user={user} />;
+    if (page === 'orders') return user ? <ProfilePage user={user} setUser={setUser} setPage={setPage} orders={orders} addToast={addToast} /> : <AuthPage setUser={setUser} setPage={setPage} addToast={addToast} cart={cart} wishlist={wishlist} user={user} />;
+    if (page === 'wishlist') return <WishlistPage wishlist={wishlist} products={MOCK_PRODUCTS} setPage={setPage} addToCart={addToCart} toggleWishlist={toggleWishlist} addToast={addToast} />;
+    if (page === 'admin') return user?.isAdmin ? <AdminPanel products={MOCK_PRODUCTS} orders={orders} setPage={setPage} /> : <AuthPage setUser={setUser} setPage={setPage} addToast={addToast} cart={cart} wishlist={wishlist} user={user} />;
+    return <HomePage products={MOCK_PRODUCTS} setPage={setPage} addToCart={addToCart} toggleWishlist={toggleWishlist} wishlist={wishlist} addToast={addToast} goToCategory={goToCategory} />;
+  };
+
+  return (
+    <AppContext.Provider value={{ cart, wishlist, user, page, setPage, addToast, addToCart, toggleWishlist }}>
+      {!hideNav && (
+        <Navbar page={page} setPage={setPage} cart={cart} wishlist={wishlist} user={user} search={search} setSearch={setSearch} />
+      )}
+      <main>{renderPage()}</main>
+      {!hideFooter && <Footer setPage={setPage} />}
+      <ToastContainer toasts={toasts} />
+    </AppContext.Provider>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
