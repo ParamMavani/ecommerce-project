@@ -482,3 +482,102 @@ body::before {
   background: rgba(255,255,255,0.08);
   color: white;
 }
+
+.upi-title {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #00e5ff;
+}
+
+.upi-apps {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.upi-app {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: 500;
+}
+
+.upi-app:hover {
+  transform: scale(1.05);
+}
+
+.upi-app.active {
+  background: linear-gradient(135deg,#00c8f0,#00ffa3);
+  color: black;
+}
+
+.upi-qr {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.upi-qr img {
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #00e5ff;
+}
+
+.nav-links a {
+  margin-left: 20px;
+  text-decoration: none;
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 20px;
+  transition: 0.3s;
+}
+
+.nav-links a:hover {
+  background: linear-gradient(135deg,#00c8f0,#00ffa3);
+  color: black;
+}
+
+.nav-links .active {
+  background: linear-gradient(135deg,#00c8f0,#00ffa3);
+  color: black;
+}
+
+.quick-actions {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.quick-actions button {
+  margin: 5px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 25px;
+  background: rgba(255,255,255,0.08);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.quick-actions button:hover {
+  background: linear-gradient(135deg,#00c8f0,#00ffa3);
+  color: black;
+}
