@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Checkout — EcommerceMart</title>
-<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/styles.css?v=5">  
 
 <!-- ✅ PayPal SDK (FIXED) -->
 <script src="https://www.paypal.com/sdk/js?client-id=AQ8bqirFCmcaEk9Uoxe5yoSt68gCv884qorLLVxR3cO_fll2suwNEAWTD9Ho-VapUgEIhhd6S0Wy6LHA&currency=USD&intent=capture"></script>
@@ -92,7 +92,9 @@
 
 </div>
 
-<h1 class="checkout-title">💳 Secure Checkout</h1>
+<h1 class="checkout-title">
+  <span class="emoji">💳</span> Secure Checkout
+</h1>
 
 <div class="checkout-container">
 
@@ -108,9 +110,9 @@
   <h2>💰 Select Payment Method</h2>
 
   <div class="payment-tabs">
-    <button onclick="showPayment('paypal')">💰 PayPal</button>
-    <button onclick="showPayment('upi')">📱 UPI</button>
-    <button onclick="showPayment('cod')">🚚 COD</button>
+    <button onclick="showPayment('paypal', this)">💰 PayPal</button>
+    <button onclick="showPayment('upi', this)">📱 UPI</button>
+    <button onclick="showPayment('cod', this)">🚚 COD</button>
   </div>
 
   <!-- PAYPAL -->
@@ -124,11 +126,21 @@
   <h3 class="upi-title">📱 Pay using UPI</h3>
 
   <!-- UPI APPS -->
-  <div class="upi-apps">
-    <div class="upi-app" onclick="selectUPI(this,'gpay')">🟢 Google Pay</div>
-    <div class="upi-app" onclick="selectUPI(this,'phonepe')">🟣 PhonePe</div>
-    <div class="upi-app" onclick="selectUPI(this,'paytm')">🔵 Paytm</div>
+ <div class="upi-apps">
+
+  <div class="upi-app" onclick="selectUPI(this,'gpay')">
+    <img src="images/gpay.png" alt="GPay">
   </div>
+
+  <div class="upi-app" onclick="selectUPI(this,'phonepe')">
+    <img src="images/phonepe.png" alt="PhonePe">
+  </div>
+
+  <div class="upi-app" onclick="selectUPI(this,'paytm')">
+    <img src="images/paytm.png" alt="Paytm">
+  </div>
+
+</div>
 
   <!-- INPUT -->
   <div class="input-group">
@@ -187,9 +199,12 @@ function loadOrder() {
 loadOrder();
 
 // SWITCH
-function showPayment(type) {
-  document.querySelectorAll(".payment-box").forEach(el => el.classList.remove("active"));
+function showPayment(type, el) {
+  document.querySelectorAll(".payment-box").forEach(e => e.classList.remove("active"));
+  document.querySelectorAll(".payment-tabs button").forEach(b => b.classList.remove("active"));
+
   document.getElementById(type).classList.add("active");
+  if (el) el.classList.add("active");
 }
 
 // SUCCESS

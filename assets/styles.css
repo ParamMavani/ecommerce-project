@@ -317,13 +317,33 @@ body::before {
   border: none;
 }
 
-.pay-btn {
-  width: 100%;
-  padding: 14px;
+.payment-tabs button {
+  flex: 1;
+  padding: 12px;
   border-radius: 30px;
-  background: linear-gradient(135deg, #00c8f0, #00ffa3);
   border: none;
+  background: rgba(255,255,255,0.06);
+  color: #ccc;
   cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+/* HOVER EFFECT */
+.payment-tabs button:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(135deg,#00c8f0,#00ffa3);
+  color: #000;
+  box-shadow: 0 5px 15px rgba(0,255,163,0.4);
+}
+
+/* ACTIVE BUTTON */
+.payment-tabs button.active {
+  background: linear-gradient(135deg,#00c8f0,#00ffa3);
+  color: #000;
+  box-shadow: 0 0 15px rgba(0,255,163,0.6);
 }
 
 .checkout-center {
@@ -580,4 +600,73 @@ body::before {
 .quick-actions button:hover {
   background: linear-gradient(135deg,#00c8f0,#00ffa3);
   color: black;
+}
+
+.upi-apps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.upi-app {
+  position: relative;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+  transition: 0.3s;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Hover */
+.upi-app:hover {
+  transform: translateY(-5px);
+  background: rgba(255,255,255,0.12);
+}
+
+/* ACTIVE (Selected) */
+.upi-app.active {
+  background: linear-gradient(135deg,#00c8f0,#00ffa3);
+  color: black;
+  box-shadow: 0 0 20px rgba(0,255,163,0.6);
+  transform: scale(1.05);
+}
+
+/* ICON */
+.upi-app img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+/* TEXT */
+.upi-app span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 🔥 FORCE CENTER FILTER BAR */
+.filter-bar {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 15px !important;
+
+  width: 100% !important;           /* take full width */
+  margin: 30px auto !important;
+}
+
+/* INPUT + SELECT SAME STYLE */
+.filter-bar input,
+.filter-bar select {
+  padding: 12px 18px;
+  border-radius: 25px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: white;
 }
