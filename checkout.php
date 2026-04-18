@@ -1,4 +1,14 @@
-<?php session_start(); ?>
+<?php 
+session_start(); 
+$envFile = __DIR__ . '/.env';
+$paypalClientId = 'test'; // Default fallback
+if (file_exists($envFile)) {
+    $env = parse_ini_file($envFile);
+    if (isset($env['PAYPAL_CLIENT_ID'])) {
+        $paypalClientId = $env['PAYPAL_CLIENT_ID'];
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,8 +16,8 @@
 <title>Checkout — EcommerceMart</title>
 <link rel="stylesheet" href="assets/styles.css?v=5">  
 
-<!-- ✅ PayPal SDK (FIXED) -->
-<script src="https://www.paypal.com/sdk/js?client-id=AQ8bqirFCmcaEk9Uoxe5yoSt68gCv884qorLLVxR3cO_fll2suwNEAWTD9Ho-VapUgEIhhd6S0Wy6LHA&currency=USD&intent=capture"></script>
+<!-- ✅ PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=<?php echo htmlspecialchars($paypalClientId); ?>&currency=USD&intent=capture"></script>
 <style>
 /* (Your same CSS — unchanged) */
 .checkout-title {
@@ -254,6 +264,9 @@ window.onload = function () {
 
     createOrder: function (data, actions) {
 
+      // Convert INR to USD (approx conversion rate ~ ₹83 = $1)
+      let usdAmount = (totalAmount / 83).toFixed(2);
+
       if (totalAmount <= 0) {
         alert("Cart is empty!");
         return;
@@ -262,7 +275,8 @@ window.onload = function () {
       return actions.order.create({
         purchase_units: [{
           amount: {
-            value: totalAmount.toString()
+            currency_code: "USD",
+            value: usdAmount.toString()
           }
         }]
       });
