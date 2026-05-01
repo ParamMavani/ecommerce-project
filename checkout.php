@@ -246,7 +246,7 @@ setTimeout(() => {
   generateQR();
 }, 500);
 
-// ✅ PAYPAL FIXED
+// ✅ PAYPAL 
 window.onload = function () {
 
   if (typeof paypal === "undefined") {

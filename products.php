@@ -81,7 +81,7 @@ foreach($products as $p) {
 
 <!-- 🔥 JS -->
 <script>
-// 🔍 FILTER FUNCTION (FIXED)
+// 🔍 FILTER FUNCTION 
 function filterProducts() {
   let search = document.getElementById("searchInput").value.toLowerCase();
   let category = document.getElementById("categoryFilter").value;
