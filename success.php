@@ -47,6 +47,11 @@
 
 <body>
 
+<header class="nav glass">
+  <div class="logo">🛒 EcommerceMart</div>
+  <?php include 'components/navbar.php'; ?>
+</header>
+
 <div class="success-container">
   <div class="success-icon">✅</div>
   <h1>Payment Successful!</h1>

@@ -10,20 +10,7 @@
 
 <header class="nav glass">
   <div class="logo">Ecommerce<span>Mart</span></div>
-  <nav>
-    <a href="index.php">Home</a>
-    <a href="products.php">Shop</a>
-    <a href="cart.php">
-      Cart <span class="cart-badge" id="cartCount">0</span>
-    </a>
-
-    <?php if(isset($_SESSION['user'])): ?>
-      <span>👤 <?php echo $_SESSION['user']; ?></span>
-      <a href="logout.php">Logout</a>
-    <?php else: ?>
-      <a href="login.php">Sign In</a>
-    <?php endif; ?>
-  </nav>
+  <?php include 'components/navbar.php'; ?>
 </header>
 
 <h1 style="text-align:center;margin-top:30px;">🛍 Shop Products</h1>

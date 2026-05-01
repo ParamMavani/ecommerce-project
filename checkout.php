@@ -91,16 +91,10 @@ if (file_exists($envFile)) {
 
 <body>
 
-<div class="navbar">
-
+<header class="nav glass">
   <div class="logo">🛒 EcommerceMart</div>
-
-  <div class="nav-links">
-    <a href="index.php">🏠 Home</a>
-    <a href="products.php">🛍️ Products</a>
-  </div>
-
-</div>
+  <?php include 'components/navbar.php'; ?>
+</header>
 
 <h1 class="checkout-title">
   <span class="emoji">💳</span> Secure Checkout

@@ -10,10 +10,7 @@
 
 <header class="nav glass">
   <div class="logo">Ecommerce<span>Mart</span></div>
-  <nav>
-    <a href="index.php">Home</a>
-    <a href="products.php">Shop</a>
-  </nav>
+  <?php include 'components/navbar.php'; ?>
 </header>
 
 <h1 style="text-align:center;margin-top:30px;">🛒 Your Cart</h1>
