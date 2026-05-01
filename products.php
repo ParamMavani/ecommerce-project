@@ -1,10 +1,76 @@
-<?php session_start(); ?>
+<?php
+session_start();
+
+// Move products array to the top so it can be used for JSON-LD Schema in the <head>
+$products = [
+  ["name"=>"Sports Shoes","price"=>1999,"img"=>"shoes.jpeg","category"=>"footwear"],
+  ["name"=>"Sneakers","price"=>2499,"img"=>"sneakers.jpeg","category"=>"footwear"],
+  ["name"=>"Boots","price"=>2999,"img"=>"boots.jpeg","category"=>"footwear"],
+  ["name"=>"Slippers","price"=>999,"img"=>"slippers.jpeg","category"=>"footwear"],
+  ["name"=>"Sandals","price"=>1299,"img"=>"sandals.jpeg","category"=>"footwear"],
+
+  ["name"=>"T-Shirt","price"=>799,"img"=>"tshirt.jpeg","category"=>"clothes"],
+  ["name"=>"Shirt","price"=>1499,"img"=>"shirt.jpeg","category"=>"clothes"],
+  ["name"=>"Hoodie","price"=>1999,"img"=>"hoodie.jpeg","category"=>"clothes"],
+  ["name"=>"Jacket","price"=>2999,"img"=>"jacket.jpeg","category"=>"clothes"],
+  ["name"=>"Jeans","price"=>1899,"img"=>"jeans.jpeg","category"=>"clothes"],
+
+  ["name"=>"Watch","price"=>3499,"img"=>"watch.jpeg","category"=>"accessories"],
+
+  ["name"=>"Headphones","price"=>1999,"img"=>"headphones.jpeg","category"=>"electronics"],
+  ["name"=>"Tablet","price"=>15999,"img"=>"tablet.jpeg","category"=>"electronics"],
+  ["name"=>"Laptop","price"=>59999,"img"=>"laptop.jpeg","category"=>"electronics"],
+  ["name"=>"iPhone","price"=>79999,"img"=>"iphone.jpeg","category"=>"electronics"],
+];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Shop — EcommerceMart</title>
+  <title>Shop Premium Footwear, Clothes & Electronics — EcommerceMart</title>
+  <meta name="description" content="Shop the best footwear, clothing, accessories, and electronics at EcommerceMart. Get premium quality products with secure checkout and fast delivery.">
+  <link rel="canonical" href="https://traitor-catnip-disposal.ngrok-free.dev/products.php">
   <link rel="stylesheet" href="assets/styles.css?v=3">
+  
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="Shop Premium Footwear, Clothes & Electronics — EcommerceMart">
+  <meta property="og:description" content="Shop the best footwear, clothing, accessories, and electronics at EcommerceMart. Get premium quality products with secure checkout and fast delivery.">
+  <meta property="og:url" content="https://traitor-catnip-disposal.ngrok-free.dev/products.php">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://traitor-catnip-disposal.ngrok-free.dev/images/shoes.jpeg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://traitor-catnip-disposal.ngrok-free.dev/images/shoes.jpeg">
+
+  <!-- JSON-LD Product Schema Markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": [
+      <?php
+      $schemaItems = [];
+      foreach($products as $index => $p) {
+          $schemaItems[] = '{
+            "@type": "ListItem",
+            "position": ' . ($index + 1) . ',
+            "item": {
+              "@type": "Product",
+              "name": "' . htmlspecialchars($p['name'], ENT_QUOTES) . '",
+              "image": "https://traitor-catnip-disposal.ngrok-free.dev/images/' . htmlspecialchars($p['img'], ENT_QUOTES) . '",
+              "offers": {
+                "@type": "Offer",
+                "priceCurrency": "INR",
+                "price": "' . $p['price'] . '",
+                "availability": "https://schema.org/InStock"
+              }
+            }
+          }';
+      }
+      echo implode(',', $schemaItems);
+      ?>
+    ]
+  }
+  </script>
 </head>
 <body>
 
@@ -13,6 +79,7 @@
   <?php include 'components/navbar.php'; ?>
 </header>
 
+<main>
 <h1 style="text-align:center;margin-top:30px;">🛍 Shop Products</h1>
 
 <!-- 🔥 CENTERED FILTER BAR -->
@@ -39,34 +106,13 @@
   <div class="products-container">
 
 <?php
-$products = [
-  ["name"=>"Sports Shoes","price"=>1999,"img"=>"shoes.jpeg","category"=>"footwear"],
-  ["name"=>"Sneakers","price"=>2499,"img"=>"sneakers.jpeg","category"=>"footwear"],
-  ["name"=>"Boots","price"=>2999,"img"=>"boots.jpeg","category"=>"footwear"],
-  ["name"=>"Slippers","price"=>999,"img"=>"slippers.jpeg","category"=>"footwear"],
-  ["name"=>"Sandals","price"=>1299,"img"=>"sandals.jpeg","category"=>"footwear"],
-
-  ["name"=>"T-Shirt","price"=>799,"img"=>"tshirt.jpeg","category"=>"clothes"],
-  ["name"=>"Shirt","price"=>1499,"img"=>"shirt.jpeg","category"=>"clothes"],
-  ["name"=>"Hoodie","price"=>1999,"img"=>"hoodie.jpeg","category"=>"clothes"],
-  ["name"=>"Jacket","price"=>2999,"img"=>"jacket.jpeg","category"=>"clothes"],
-  ["name"=>"Jeans","price"=>1899,"img"=>"jeans.jpeg","category"=>"clothes"],
-
-  ["name"=>"Watch","price"=>3499,"img"=>"watch.jpeg","category"=>"accessories"],
-
-  ["name"=>"Headphones","price"=>1999,"img"=>"headphones.jpeg","category"=>"electronics"],
-  ["name"=>"Tablet","price"=>15999,"img"=>"tablet.jpeg","category"=>"electronics"],
-  ["name"=>"Laptop","price"=>59999,"img"=>"laptop.jpeg","category"=>"electronics"],
-  ["name"=>"iPhone","price"=>79999,"img"=>"iphone.jpeg","category"=>"electronics"],
-];
-
 foreach($products as $p) {
 ?>
 <div class="product-card"
      data-category="<?php echo $p['category']; ?>"
      data-price="<?php echo $p['price']; ?>">
 
-    <img src="images/<?php echo $p['img']; ?>">
+    <img src="images/<?php echo $p['img']; ?>" alt="<?php echo htmlspecialchars($p['name']); ?> - Shop Online" loading="lazy">
     <h3><?php echo $p['name']; ?></h3>
     <p>₹<?php echo $p['price']; ?></p>
 
@@ -75,9 +121,19 @@ foreach($products as $p) {
     </button>
 </div>
 <?php } ?>
-
   </div>
 </div>
+
+<!-- 📧 Mailchimp Signup Form -->
+<div class="newsletter-section" style="text-align: center; margin: 40px auto; padding: 40px 20px; max-width: 600px; background: rgba(255,255,255,0.05); border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(0,200,240,0.2);">
+  <h2>🎉 Get 10% Off Your First Order</h2>
+  <p style="color: #aaa; margin-top: 10px; margin-bottom: 20px;">Subscribe to our newsletter for exclusive deals and updates.</p>
+  <form action="http://eepurl.com/dqNn2NZ1OA" method="post" target="_blank" style="display: flex; justify-content: center; gap: 10px;">
+    <input type="email" name="EMAIL" placeholder="Enter your email address" required style="padding: 12px; width: 60%; border-radius: 8px; border: none; background: rgba(255,255,255,0.08); color: #fff;">
+    <button type="submit" class="btn-main" style="border-radius: 8px;">Subscribe</button>
+  </form>
+</div>
+</main>
 
 <!-- 🔥 JS -->
 <script>
